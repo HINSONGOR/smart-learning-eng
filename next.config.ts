@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // 本系統每次都即時讀取本機 JSON，不需要 Cache Components / Partial Prerendering
   turbopack: {
     rules: {
       "*.css": {

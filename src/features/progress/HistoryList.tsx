@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLearner } from "@/components/providers/LearnerProvider";
-import { Badge, ChipGroup, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
+import { Badge, ChipGroup, DownloadButton, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
 import { PRACTICE_KINDS, type PracticeKind } from "@/lib/constants";
 import { withQuery } from "@/lib/apiClient";
 import { modeLabel } from "@/lib/labels";
@@ -21,7 +21,15 @@ export function HistoryList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="練習歷史 Practice History" subtitle={learner ? `${learner.name}的所有練習紀錄` : undefined} />
+      <PageHeader
+        title="練習歷史 Practice History"
+        subtitle={learner ? `${learner.name}的所有練習紀錄` : undefined}
+        actions={
+          ready && records.length > 0 ? (
+            <DownloadButton href={withQuery("/api/export/records", { learnerId, kind })}>匯出 Word</DownloadButton>
+          ) : undefined
+        }
+      />
       <ChipGroup
         label="練習類型"
         value={kind}

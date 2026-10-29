@@ -26,6 +26,26 @@ export async function handle(fn: () => Promise<unknown>, successStatus = 200): P
   }
 }
 
+/** 回傳可下載的 Word 檔；錯誤時沿用 handle 的 JSON 錯誤格式 */
+export async function handleDocx(fn: () => Promise<{ buffer: Buffer; filename: string }>): Promise<Response> {
+  await connection();
+  try {
+    const { buffer, filename } = await fn();
+    return new Response(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        // 中文檔名需要用 RFC 5987 格式編碼
+        "Content-Disposition": `attachment; filename="export.docx"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch (error) {
+    return handle(async () => {
+      throw error;
+    });
+  }
+}
+
 export async function readBody(request: Request): Promise<unknown> {
   try {
     return await request.json();

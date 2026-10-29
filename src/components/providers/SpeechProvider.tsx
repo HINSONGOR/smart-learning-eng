@@ -5,6 +5,7 @@
 // - 長文逐句播放，避免部分瀏覽器朗讀長句時中斷，亦方便標示目前句子。
 // - 語音及語速設定儲存在這部裝置的瀏覽器，因為每部裝置的語音都不同。
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useHydrated } from "@/lib/useHydrated";
 
 const VOICE_KEY = "sle.voiceURI";
 const RATE_KEY = "sle.rate";
@@ -215,7 +216,10 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
 
 export function useSpeech(): SpeechContextValue {
   const context = useContext(SpeechContext);
+  const hydrated = useHydrated();
   if (!context) throw new Error("useSpeech must be used inside SpeechProvider");
+  // hydration 期間使用與伺服器相同的「未檢查」狀態
+  if (!hydrated) return { ...context, supported: null, voicesLoaded: false, voices: [], status: "idle", activeKey: "", activeIndex: -1 };
   return context;
 }
 

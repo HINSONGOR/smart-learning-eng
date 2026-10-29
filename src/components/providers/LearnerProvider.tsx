@@ -3,6 +3,7 @@
 // 目前學習者（我／兒子）。選擇會記在這部裝置的瀏覽器，每部裝置可以各自選擇。
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/apiClient";
+import { useHydrated } from "@/lib/useHydrated";
 import type { Learner } from "@/types";
 
 const STORAGE_KEY = "sle.learnerId";
@@ -87,6 +88,11 @@ export function LearnerProvider({ children }: { children: React.ReactNode }) {
 
 export function useLearner(): LearnerContextValue {
   const context = useContext(LearnerContext);
+  const hydrated = useHydrated();
   if (!context) throw new Error("useLearner must be used inside LearnerProvider");
+  // hydration 期間使用與伺服器相同的「未載入」狀態，避免畫面前後不一致
+  if (!hydrated) {
+    return { ...context, learnerId: "", learner: undefined, learners: [], settings: null, ready: false, error: "" };
+  }
   return context;
 }

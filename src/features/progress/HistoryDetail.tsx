@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useLearner } from "@/components/providers/LearnerProvider";
-import { Button, Card, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
+import { Button, Card, DownloadButton, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
 import { CATEGORIES } from "@/lib/constants";
 import { api, withQuery } from "@/lib/apiClient";
 import { modeLabel } from "@/lib/labels";
@@ -87,6 +87,7 @@ export function HistoryDetail() {
           <LinkButton href={links.again} variant="secondary">
             重新練習
           </LinkButton>
+          <DownloadButton href={withQuery(`/api/export/records/${record.id}`, { learnerId })}>匯出 Word</DownloadButton>
           <Button variant="ghost" className="text-rose-700" onClick={() => setConfirming(true)}>
             刪除紀錄
           </Button>

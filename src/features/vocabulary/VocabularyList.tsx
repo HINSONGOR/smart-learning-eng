@@ -6,7 +6,7 @@ import { useDeferredValue, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useLearner } from "@/components/providers/LearnerProvider";
 import { SpeakButton } from "@/components/SpeakButton";
-import { Button, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
+import { Button, DownloadButton, EmptyState, ErrorMessage, LinkButton, LoadingState, PageHeader } from "@/components/ui";
 import { api, withQuery } from "@/lib/apiClient";
 import { useApi } from "@/lib/useApi";
 import type { VocabProgress, VocabularyView } from "@/types";
@@ -69,6 +69,14 @@ export function VocabularyList() {
             <LinkButton href="/vocabulary/cards" variant="secondary">
               單字卡
             </LinkButton>
+            {ready && (
+              <DownloadButton
+                href={withQuery("/api/export/vocabulary", { learnerId, ...filter })}
+                title="按目前的篩選條件匯出 Word 檔"
+              >
+                匯出 Word
+              </DownloadButton>
+            )}
           </>
         }
       />

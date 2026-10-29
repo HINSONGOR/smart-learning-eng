@@ -32,6 +32,15 @@ export function LinkButton({
   return <Link className={`${BASE} ${VARIANTS[variant]} ${className}`} {...props} />;
 }
 
+/** 下載檔案（例如匯出 Word）的按鈕 */
+export function DownloadButton({
+  variant = "secondary",
+  className = "",
+  ...props
+}: ComponentProps<"a"> & { variant?: Variant }) {
+  return <a download className={`${BASE} ${VARIANTS[variant]} ${className}`} {...props} />;
+}
+
 export function Card({ className = "", ...props }: ComponentProps<"div">) {
   return (
     <div className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 ${className}`} {...props} />

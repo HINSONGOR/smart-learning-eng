@@ -13,7 +13,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  delete process.env.DATA_DIR;
+  // 不刪除 DATA_DIR 設定：尚未完成的寫入只會落在暫存資料夾，不會寫入真正的 data/
   await fs.rm(dir, { recursive: true, force: true });
 });
 
