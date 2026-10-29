@@ -1,0 +1,7 @@
+{
+  "learners": [
+    { "id": "me", "name": "我" },
+    { "id": "son", "name": "兒子" }
+  ],
+  "gemini": { "includeSentence": true }
+}

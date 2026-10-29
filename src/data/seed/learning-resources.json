@@ -1,0 +1,41 @@
+[
+  {
+    "id": "demo-res-01",
+    "title": "BBC Learning English",
+    "url": "https://www.bbc.co.uk/learningenglish/",
+    "category": "daily",
+    "resourceType": "bbc",
+    "topic": "Daily Conversation",
+    "notes": "示範資料：BBC 官方英文學習網站首頁。",
+    "isFavorite": false,
+    "isDemo": true,
+    "createdAt": "2026-10-29T00:00:00.000Z",
+    "updatedAt": "2026-10-29T00:00:00.000Z"
+  },
+  {
+    "id": "demo-res-02",
+    "title": "BBC Learning English - 6 Minute English",
+    "url": "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english",
+    "category": "daily",
+    "resourceType": "bbc",
+    "topic": "Daily Conversation",
+    "notes": "示範資料：每集約六分鐘的英文聆聽節目。",
+    "isFavorite": false,
+    "isDemo": true,
+    "createdAt": "2026-10-29T00:00:00.000Z",
+    "updatedAt": "2026-10-29T00:00:00.000Z"
+  },
+  {
+    "id": "demo-res-03",
+    "title": "BBC Learning English (YouTube)",
+    "url": "https://www.youtube.com/@bbclearningenglish",
+    "category": "daily",
+    "resourceType": "youtube",
+    "topic": "Daily Conversation",
+    "notes": "示範資料：BBC Learning English 的 YouTube 頻道。",
+    "isFavorite": false,
+    "isDemo": true,
+    "createdAt": "2026-10-29T00:00:00.000Z",
+    "updatedAt": "2026-10-29T00:00:00.000Z"
+  }
+]
