@@ -4,9 +4,10 @@ import { connection } from "next/server";
 import { DataFileError, NotFoundError, ValidationError } from "./errors";
 
 export async function handle(fn: () => Promise<unknown>, successStatus = 200): Promise<Response> {
+  // 確保每次請求都即時讀取 JSON，不會在建置時被預先產生。
+  // 必須放在 try 之外：建置時 Next.js 會用它中止預先產生，不可被下面的錯誤處理攔截。
+  await connection();
   try {
-    // 確保每次請求都即時讀取 JSON，不會在建置時被預先產生
-    await connection();
     const data = await fn();
     return Response.json(data ?? { ok: true }, { status: successStatus });
   } catch (error) {

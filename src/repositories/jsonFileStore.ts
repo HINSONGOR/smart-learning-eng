@@ -12,7 +12,8 @@ import type { ZodType } from "zod";
 import { DataFileError } from "@/lib/errors";
 
 export function getDataDir(): string {
-  return process.env.DATA_DIR ?? path.join(process.cwd(), "data");
+  // turbopackIgnore：資料夾在執行時才讀取，不需要在建置時追蹤整個專案
+  return process.env.DATA_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), "data");
 }
 
 function filePath(fileName: string): string {

@@ -42,7 +42,12 @@ export async function getPublicExercise(id: string): Promise<PublicExercise> {
   return {
     ...exercise,
     // 作答前不把答案及解釋傳給瀏覽器
-    questions: exercise.questions.map(({ answers: _answers, explanation: _explanation, ...rest }) => rest),
+    questions: exercise.questions.map((q) => ({
+      id: q.id,
+      number: q.number,
+      prompt: q.prompt,
+      options: q.options,
+    })),
   };
 }
 
