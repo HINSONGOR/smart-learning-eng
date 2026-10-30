@@ -1,22 +1,36 @@
 import "server-only";
 import { z } from "zod";
-import { settingsRepository } from "@/repositories";
+import { isCloudBackend, settingsRepository } from "@/repositories";
 import { learnerSchema, type Settings } from "@/lib/schemas";
-import { NotFoundError } from "@/lib/errors";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { isAuthEnabled, requireSession } from "@/lib/auth";
 import { parseInput } from "@/lib/validation";
 import { isGeminiConfigured } from "./geminiService";
 
 export interface PublicSettings extends Settings {
   geminiConfigured: boolean;
+  storage: "local" | "cloud";
 }
 
 export async function getSettings(): Promise<PublicSettings> {
   const settings = await settingsRepository.read();
-  return { ...settings, geminiConfigured: isGeminiConfigured() };
+  return {
+    ...settings,
+    geminiConfigured: isGeminiConfigured(),
+    storage: isCloudBackend() ? "cloud" : "local",
+  };
 }
 
-/** 確認學習者存在，避免寫入無效的 learnerId */
+/**
+ * 確認學習者存在，避免寫入無效的 learnerId。
+ * 雲端版只容許存取「目前登入者」自己的資料。
+ */
 export async function assertLearner(learnerId: unknown): Promise<string> {
+  if (isAuthEnabled()) {
+    const sessionLearnerId = await requireSession();
+    if (learnerId !== sessionLearnerId) throw new ForbiddenError("只可以存取自己的學習紀錄");
+    return sessionLearnerId;
+  }
   const settings = await settingsRepository.read();
   if (typeof learnerId !== "string" || !settings.learners.some((l) => l.id === learnerId)) {
     throw new NotFoundError("找不到這位學習者，請重新選擇學習者");

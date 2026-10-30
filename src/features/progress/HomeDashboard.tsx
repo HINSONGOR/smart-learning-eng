@@ -10,7 +10,7 @@ import { useApi } from "@/lib/useApi";
 import type { HomeStats } from "@/types";
 
 export function HomeDashboard() {
-  const { learnerId, learner, ready } = useLearner();
+  const { learnerId, learner, ready, settings } = useLearner();
   const { data, error, loading, reload } = useApi<HomeStats>(
     ready ? withQuery("/api/stats", { learnerId }) : null,
   );
@@ -128,14 +128,21 @@ export function HomeDashboard() {
         </>
       )}
 
-      <Notice tone="info">
-        💾 所有資料只儲存在這部電腦的 <code>data</code> 資料夾，<strong>不是雲端備份</strong>。請定期把整個{" "}
-        <code>data</code> 資料夾複製到 USB 或其他位置。詳情見{" "}
-        <Link href="/settings#backup" className="font-medium underline">
-          設定 → 備份
-        </Link>
-        。
-      </Notice>
+      {settings && (
+        <Notice tone="info">
+          {settings.storage === "cloud" ? (
+            <>💾 資料儲存在 Firebase 雲端，但免費方案<strong>沒有自動備份</strong>。請每星期在</>
+          ) : (
+            <>
+              💾 所有資料只儲存在這部電腦的 <code>data</code> 資料夾，<strong>不是雲端備份</strong>。請定期在
+            </>
+          )}{" "}
+          <Link href="/settings#backup" className="font-medium underline">
+            設定 → 備份
+          </Link>{" "}
+          下載備份，存放在電腦或 USB。
+        </Notice>
+      )}
     </div>
   );
 }

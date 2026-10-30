@@ -121,6 +121,16 @@ export async function readJsonFile<T>(options: JsonFileOptions<T>): Promise<T> {
   return parsed.data;
 }
 
+/** 以本機 JSON 檔案實作 DocumentStore */
+export function createJsonStore<T>(options: JsonFileOptions<T>) {
+  return {
+    read: () => readJsonFile(options),
+    update: <R = void>(
+      updater: (data: T) => { data: T; result: R } | Promise<{ data: T; result: R }>,
+    ) => updateJsonFile<T, R>(options, updater),
+  };
+}
+
 const locks = new Map<string, Promise<unknown>>();
 
 /** 在檔案鎖內讀取、修改並寫回。updater 回傳的新資料會先經過 schema 驗證才寫入。 */

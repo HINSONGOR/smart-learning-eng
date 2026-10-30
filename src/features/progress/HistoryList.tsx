@@ -9,12 +9,12 @@ import { withQuery } from "@/lib/apiClient";
 import { modeLabel } from "@/lib/labels";
 import { formatDateTime, percent } from "@/lib/text";
 import { useApi } from "@/lib/useApi";
-import type { PracticeRecord } from "@/types";
+import type { PracticeRecordSummary } from "@/types";
 
 export function HistoryList() {
   const { learnerId, learner, ready } = useLearner();
   const [kind, setKind] = useState<PracticeKind | "">("");
-  const { data, error, loading, reload } = useApi<PracticeRecord[]>(
+  const { data, error, loading, reload } = useApi<PracticeRecordSummary[]>(
     ready ? withQuery("/api/records", { learnerId, kind }) : null,
   );
   const records = data ?? [];

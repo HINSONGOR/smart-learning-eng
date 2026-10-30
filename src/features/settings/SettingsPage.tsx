@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useLearner } from "@/components/providers/LearnerProvider";
 import { speechUnavailableReason, useSpeech } from "@/components/providers/SpeechProvider";
-import { Button, Card, ErrorMessage, Field, Notice, PageHeader, Select, TextInput } from "@/components/ui";
+import { Button, Card, DownloadButton, ErrorMessage, Field, Notice, PageHeader, Select, TextInput } from "@/components/ui";
 import { api } from "@/lib/apiClient";
 import { useApi } from "@/lib/useApi";
 import type { Learner } from "@/types";
@@ -146,9 +146,16 @@ function GeminiSettings() {
           <ol className="mt-1 list-decimal space-y-0.5 pl-5">
             <li>到 Google AI Studio 用 Google 帳戶申請免費 API key。</li>
             <li>
-              在專案資料夾建立 <code>.env.local</code> 檔案，寫入一行：<code>GEMINI_API_KEY=你的key</code>
+              {settings.storage === "cloud" ? (
+                <>
+                  在 Vercel 專案的 Settings → Environment Variables 加入 <code>GEMINI_API_KEY</code>，然後重新部署（Redeploy）。
+                </>
+              ) : (
+                <>
+                  在專案資料夾的 <code>.env.local</code> 檔案加入一行：<code>GEMINI_API_KEY=你的key</code>，然後重新啟動系統。
+                </>
+              )}
             </li>
-            <li>重新啟動系統。</li>
           </ol>
           <p className="mt-2">⚠️ 請不要在該 Google 專案啟用付款（Billing），這樣便不會產生費用；超出免費額度時查詢只會暫時失敗。</p>
         </Notice>
@@ -218,8 +225,25 @@ function DemoDataSettings() {
 }
 
 function BackupInfo() {
+  const { settings } = useLearner();
+  const cloud = settings?.storage === "cloud";
   return (
     <Section id="backup" title="資料儲存及備份">
+      <div className="flex flex-wrap items-center gap-3">
+        <DownloadButton href="/api/backup" variant="primary">
+          ⬇ 下載全部資料備份
+        </DownloadButton>
+        <span className="text-sm text-slate-500">包括生字、文章、題目、資源、學習進度及所有練習紀錄（JSON 檔）</span>
+      </div>
+      {cloud ? (
+        <>
+          <Notice tone="info">
+            資料儲存在 Firebase 雲端資料庫（香港 asia-east2）。免費方案<strong>沒有自動備份</strong>，請每星期按上面的按鈕下載一次備份，存放在電腦或 USB。
+          </Notice>
+          <p className="text-sm text-slate-600">如需從備份還原，請把備份檔交給開發者，用專案內的還原工具匯入。</p>
+        </>
+      ) : (
+        <>
       <Notice tone="warning">所有資料只儲存在這部電腦，不是雲端備份。電腦損壞或誤刪檔案時，資料可能會遺失。</Notice>
       <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
         <li>
@@ -236,6 +260,8 @@ function BackupInfo() {
         </li>
         <li>請不要在系統運行時手動修改 JSON 檔案。</li>
       </ul>
+        </>
+      )}
     </Section>
   );
 }

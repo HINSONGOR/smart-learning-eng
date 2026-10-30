@@ -4,6 +4,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BOTTOM_NAV, NAV_GROUPS } from "@/lib/navigation";
+import { LoginScreen } from "./LoginScreen";
+import { LoadingState } from "./ui";
 import { useLearner } from "./providers/LearnerProvider";
 
 function isActive(pathname: string, href: string): boolean {
@@ -13,7 +15,17 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 function LearnerSwitcher() {
-  const { learners, learnerId, setLearnerId } = useLearner();
+  const { learners, learnerId, learner, setLearnerId, authEnabled, logout } = useLearner();
+  if (authEnabled) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <span className="font-medium text-slate-700">{learner?.name}</span>
+        <button type="button" onClick={() => void logout()} className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 hover:bg-slate-50">
+          登出
+        </button>
+      </div>
+    );
+  }
   if (learners.length === 0) return null;
   return (
     <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1" role="radiogroup" aria-label="選擇學習者">
@@ -37,7 +49,16 @@ function LearnerSwitcher() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { error } = useLearner();
+  const { error, needsLogin, sessionLoaded } = useLearner();
+
+  if (!sessionLoaded) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <LoadingState />
+      </div>
+    );
+  }
+  if (needsLogin) return <LoginScreen />;
 
   return (
     <div className="flex min-h-dvh">

@@ -1,6 +1,7 @@
 // 練習紀錄：保存、列出、統計。
 import "server-only";
 import { recordRepository } from "@/repositories";
+import type { PracticeRecordSummary } from "@/repositories/recordRepository";
 import {
   practiceRecordInputSchema,
   type PracticeAnswer,
@@ -58,11 +59,10 @@ export async function insertRecord(record: PracticeRecord): Promise<PracticeReco
   return recordRepository.insert(record);
 }
 
-export async function listRecords(learnerId: string, kind?: PracticeKind | ""): Promise<PracticeRecord[]> {
-  const records = await recordRepository.list();
-  return records
-    .filter((r) => r.learnerId === learnerId && (!kind || r.kind === kind))
-    .sort((a, b) => b.date.localeCompare(a.date));
+/** 紀錄摘要（不含每題作答），最新在前 */
+export async function listRecords(learnerId: string, kind?: PracticeKind | ""): Promise<PracticeRecordSummary[]> {
+  const records = await recordRepository.listSummaries(learnerId);
+  return kind ? records.filter((r) => r.kind === kind) : records;
 }
 
 export async function getRecord(learnerId: string, id: string): Promise<PracticeRecord> {
@@ -79,7 +79,7 @@ export async function deleteRecord(learnerId: string, id: string): Promise<void>
 }
 
 /** 按模式或題型統計正確率 */
-export function accuracyByMode(records: PracticeRecord[]): TypeAccuracy[] {
+export function accuracyByMode(records: PracticeRecordSummary[]): TypeAccuracy[] {
   const map = new Map<string, TypeAccuracy>();
   for (const r of records) {
     if (!r.scored) continue;

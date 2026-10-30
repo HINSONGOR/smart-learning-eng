@@ -29,6 +29,9 @@ import type {
 } from "@/lib/schemas";
 import type { CategoryId, ExerciseType, VocabPracticeMode } from "@/lib/constants";
 
+/** 練習紀錄摘要（不含每題作答），用於列表及統計 */
+export type PracticeRecordSummary = Omit<PracticeRecord, "answers">;
+
 /** 生字內容 + 目前學習者的進度 */
 export interface VocabularyView extends Vocabulary {
   progress: VocabProgress;

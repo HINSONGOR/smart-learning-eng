@@ -17,6 +17,22 @@ export class NotFoundError extends Error {
   }
 }
 
+/** 未登入（雲端版） */
+export class UnauthorizedError extends Error {
+  constructor(message = "請先登入") {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+
+/** 已登入但無權存取（例如嘗試讀取另一位學習者的紀錄） */
+export class ForbiddenError extends Error {
+  constructor(message = "沒有權限存取這些資料") {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}
+
 /** JSON 資料檔讀取或寫入失敗 */
 export class DataFileError extends Error {
   constructor(

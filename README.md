@@ -1,8 +1,50 @@
-# Smart English 免費英文學習系統（第一階段本機試用版）
+# Smart English 免費英文學習系統
 
-IELTS、日常生活及職場英文學習 Web App。所有資料只儲存在這部電腦，不使用雲端資料庫，也沒有登入功能。
+IELTS、日常生活及職場英文學習 Web App。有兩種運行方式：
 
-> ⚠️ 這是**本機試用版**：只適合在自己電腦（及屋企 Wi-Fi）使用，不適合多人同時使用，也不可以直接部署到沒有永久檔案儲存的雲端環境。
+| | 本機版 | 雲端版 |
+|---|---|---|
+| 資料存放 | 這部電腦的 `data/` 資料夾 | Firebase Firestore（香港 asia-east2） |
+| 登入 | 不需要，頂部切換學習者 | 揀名字 + 6 位數字 PIN |
+| 使用地點 | 這部電腦／屋企 Wi-Fi，電腦要開着 | 任何地方，電腦關機也可以（部署到 Vercel） |
+| 設定 | `.env.local` 留空 | 見下面「雲端版設定」 |
+
+> 本機版只適合自己使用，不可以直接部署到雲端（雲端沒有永久檔案儲存，必須使用雲端版設定）。
+
+---
+
+## 雲端版設定（Firebase + Vercel）
+
+### Firebase（Spark 免費方案，不要升級 Blaze）
+1. Firestore Database：位置 asia-east2，Production mode。
+2. Authentication → 電子郵件/密碼：啟用；每位學習者一個帳戶，密碼 = 6 位數字 PIN。
+3. 專案設定 → 服務帳戶 → 產生私密金鑰（檔案**不可**放進專案資料夾或 GitHub）。
+
+### 環境變數
+本機寫在 `.env.local`；Vercel 寫在 Project Settings → Environment Variables（格式見 [.env.example](.env.example)）：
+
+| 名稱 | 內容 |
+|---|---|
+| `DATA_BACKEND` | `firestore` |
+| `AUTH_MODE` | `firebase` |
+| `FIREBASE_SERVICE_ACCOUNT` | （Vercel）金鑰檔的完整內容；本機改用 `FIREBASE_SERVICE_ACCOUNT_PATH`＝金鑰檔路徑 |
+| `LEARNER_ACCOUNTS` | `me=我的帳戶電郵,son=兒子的帳戶電郵` |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase 網頁設定中的 apiKey |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase 專案 ID |
+| `GEMINI_API_KEY` | 可選 |
+
+### Vercel
+在 Vercel 匯入 GitHub 倉庫 → 加入上述環境變數 → Deploy。之後每次 push 到 `main` 都會自動更新。`vercel.json` 已設定伺服器位置為香港（hkg1），以接近 Firestore。
+
+### 備份及還原
+- 免費方案沒有自動備份：請在「設定 → 資料儲存及備份」定期**下載全部資料備份**。
+- 還原或把本機資料搬上雲端：
+```bash
+node scripts/firestore-import.mjs 備份檔.json --force
+```
+（不指定檔案時匯入本機 `data/` 資料夾；雲端已有資料時必須加 `--force`。）
+
+---
 
 ---
 
