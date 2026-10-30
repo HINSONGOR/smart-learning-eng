@@ -1,14 +1,16 @@
 // 雲端版登入：揀名字 + 6 位數字 PIN。
-// - 背後使用 Firebase Authentication（電郵／密碼），電郵只存放在伺服器環境變數，不會傳到瀏覽器。
-// - 登入成功後發出 httpOnly session cookie（14 日有效），瀏覽器 JavaScript 無法讀取。
+// - PIN 由 Firebase Authentication 驗證（電郵／密碼），電郵只存放在伺服器環境變數，不會傳到瀏覽器。
+// - 驗證成功後，系統發出自己簽名的 httpOnly session cookie（14 日有效），瀏覽器 JavaScript 無法讀取或偽造。
+//   簽名金鑰由 Firebase 伺服器金鑰衍生，不需要額外設定。
 // - AUTH_MODE 不是 firebase 時（本機版），不需要登入。
 import "server-only";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { adminAuth } from "./firebaseAdmin";
+import { loadServiceAccount } from "./firebaseAdmin";
 import { UnauthorizedError, ValidationError } from "./errors";
 
 export const SESSION_COOKIE = "sle_session";
-const SESSION_DAYS = 14;
+const SESSION_SECONDS = 14 * 24 * 60 * 60;
 
 export function isAuthEnabled(): boolean {
   return process.env.AUTH_MODE === "firebase";
@@ -24,24 +26,44 @@ export function learnerAccounts(): Map<string, string> {
   return map;
 }
 
-function learnerIdForEmail(email: string | undefined): string | null {
-  if (!email) return null;
-  for (const [learnerId, mapped] of learnerAccounts()) {
-    if (mapped === email.toLowerCase()) return learnerId;
+/* ---------- 簽名 cookie ---------- */
+
+function signingKey(): Buffer {
+  const { privateKey } = loadServiceAccount();
+  return createHash("sha256").update(`smart-english-session:${privateKey}`).digest();
+}
+
+function sign(payload: string): string {
+  return createHmac("sha256", signingKey()).update(payload).digest("base64url");
+}
+
+function createSessionValue(learnerId: string): string {
+  const payload = Buffer.from(
+    JSON.stringify({ l: learnerId, e: Math.floor(Date.now() / 1000) + SESSION_SECONDS }),
+  ).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+function verifySessionValue(value: string): string | null {
+  const [payload, signature] = value.split(".");
+  if (!payload || !signature) return null;
+  const expected = Buffer.from(sign(payload));
+  const actual = Buffer.from(signature);
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
+  try {
+    const { l, e } = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { l?: string; e?: number };
+    if (!l || !e || e < Date.now() / 1000) return null;
+    // 帳戶設定已移除的學習者不再有效
+    return learnerAccounts().has(l) ? l : null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /** 目前登入的學習者；未登入或 cookie 無效時回傳 null */
 export async function getSessionLearnerId(): Promise<string | null> {
-  const cookie = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!cookie) return null;
-  try {
-    const decoded = await adminAuth().verifySessionCookie(cookie);
-    return learnerIdForEmail(decoded.email);
-  } catch {
-    return null;
-  }
+  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+  return value ? verifySessionValue(value) : null;
 }
 
 export async function requireSession(): Promise<string> {
@@ -49,6 +71,8 @@ export async function requireSession(): Promise<string> {
   if (!learnerId) throw new UnauthorizedError();
   return learnerId;
 }
+
+/* ---------- 驗證 PIN ---------- */
 
 const SIGN_IN_ERRORS: Record<string, string> = {
   INVALID_LOGIN_CREDENTIALS: "PIN 不正確",
@@ -71,18 +95,19 @@ export async function signIn(learnerId: string, pin: string): Promise<{ cookie: 
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: pin, returnSecureToken: true }),
+      body: JSON.stringify({ email, password: pin, returnSecureToken: false }),
       signal: AbortSignal.timeout(15_000),
     },
   );
-  const body = (await response.json().catch(() => null)) as { idToken?: string; error?: { message?: string } } | null;
-  if (!response.ok || !body?.idToken) {
+  const body = (await response.json().catch(() => null)) as {
+    email?: string;
+    error?: { message?: string };
+  } | null;
+  if (!response.ok || body?.email?.toLowerCase() !== email) {
     const code = body?.error?.message?.split(" ")[0] ?? "";
     // 稍作延遲，減慢猜 PIN 的速度
     await new Promise((resolve) => setTimeout(resolve, 600));
     throw new ValidationError(SIGN_IN_ERRORS[code] ?? "登入失敗，請稍後再試");
   }
-  const expiresIn = SESSION_DAYS * 24 * 60 * 60 * 1000;
-  const cookie = await adminAuth().createSessionCookie(body.idToken, { expiresIn });
-  return { cookie, maxAge: expiresIn / 1000 };
+  return { cookie: createSessionValue(learnerId), maxAge: SESSION_SECONDS };
 }
