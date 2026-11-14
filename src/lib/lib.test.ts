@@ -86,6 +86,15 @@ describe("buildQuiz", () => {
     expect(result.questions.every((q) => q.prompt.includes("_____"))).toBe(true);
   });
 
+  it("still quizzes words without example sentences, but not in sentence-based modes", () => {
+    const noExample = pool.map((w) => ({ ...w, exampleEn: "", exampleZh: "" }));
+    const enZh = buildQuiz(noExample, noExample, { mode: "en-zh", count: 3 });
+    expect(enZh.questions).toHaveLength(3);
+    expect(enZh.questions[0].explanation).not.toContain("例句");
+    expect(buildQuiz(noExample, noExample, { mode: "fill-blank", count: 3 }).questions).toHaveLength(0);
+    expect(buildQuiz(noExample, noExample, { mode: "sentence-reading", count: 3 }).questions).toHaveLength(0);
+  });
+
   it("skips definition questions when not enough definitions exist", () => {
     const noDef = pool.map((w) => ({ ...w, definitionEn: "" }));
     const result = buildQuiz(noDef, noDef, { mode: "definition", count: 5 });

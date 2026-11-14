@@ -120,13 +120,15 @@ export function VocabularyList() {
                       <p className="text-slate-700">{item.meaningZh}</p>
                     </div>
                     {item.definitionEn && <p className="text-sm text-slate-500">{item.definitionEn}</p>}
-                    <div className="mt-1.5 flex items-start gap-2">
-                      <SpeakButton text={item.exampleEn} size="sm" label="播放例句" />
-                      <div className="text-sm">
-                        <p className="text-slate-800">{item.exampleEn}</p>
-                        {item.exampleZh && <p className="text-slate-500">{item.exampleZh}</p>}
+                    {item.exampleEn && (
+                      <div className="mt-1.5 flex items-start gap-2">
+                        <SpeakButton text={item.exampleEn} size="sm" label="播放例句" />
+                        <div className="text-sm">
+                          <p className="text-slate-800">{item.exampleEn}</p>
+                          {item.exampleZh && <p className="text-slate-500">{item.exampleZh}</p>}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="mt-2">
                       <VocabularyBadges item={item} />
                     </div>

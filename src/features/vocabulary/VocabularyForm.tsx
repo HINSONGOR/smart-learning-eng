@@ -42,7 +42,6 @@ function validate(form: FormState): Record<string, string> {
   else if (!/[a-z]/i.test(form.word)) errors.word = "英文生字必須包含英文字母";
   if (!form.partOfSpeech) errors.partOfSpeech = "請選擇詞性";
   if (!form.meaningZh.trim()) errors.meaningZh = "請輸入中文解釋";
-  if (!form.exampleEn.trim()) errors.exampleEn = "請輸入英文例句";
   if (!form.category) errors.category = "請選擇學習分類";
   if (!form.topic.trim()) errors.topic = "請輸入主題";
   return errors;
@@ -157,7 +156,7 @@ export function VocabularyForm({ mode }: { mode: "create" | "edit" }) {
           <Field label="英文解釋 English definition" error={errors.definitionEn} hint="選填；用於 English Definition Quiz">
             <TextArea rows={2} value={form.definitionEn} onChange={set("definitionEn")} maxLength={500} lang="en" />
           </Field>
-          <Field label="英文例句" required error={errors.exampleEn}>
+          <Field label="英文例句" error={errors.exampleEn} hint="建議填寫；用於填充題、聽寫及跟讀">
             <TextArea rows={2} value={form.exampleEn} onChange={set("exampleEn")} maxLength={500} invalid={Boolean(errors.exampleEn)} lang="en" />
           </Field>
           <Field label="例句中文翻譯" error={errors.exampleZh} hint="建議填寫；用於例句閱讀練習">

@@ -19,6 +19,7 @@ export async function listPracticeSentences(input: unknown): Promise<PracticeSen
   if (filter.source !== "articles" && !filter.articleId) {
     const vocabulary = await vocabularyRepository.list();
     for (const v of vocabulary) {
+      if (!v.exampleEn.trim()) continue; // 沒有例句的生字不能用作聽寫或跟讀
       if (filter.category && v.category !== filter.category) continue;
       sentences.push({
         key: `vocab:${v.id}`,

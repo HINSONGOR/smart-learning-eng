@@ -23,7 +23,11 @@ export function CategoryOverview() {
   const category = CATEGORIES[id];
   const words = vocab.data ?? [];
   const categoryArticles = (articles.data ?? []).filter((a) => a.category === id);
-  const topics = [...new Set([...category.topics, ...words.map((w) => w.topic)])];
+  // 有生字時只列出有內容的主題（按數字排序，例如 List 2 在 List 10 之前）；未有生字時顯示建議主題
+  const topics =
+    words.length > 0
+      ? [...new Set(words.map((w) => w.topic))].sort((a, b) => a.localeCompare(b, "en", { numeric: true }))
+      : category.topics;
   const isIelts = id === "ielts";
 
   return (

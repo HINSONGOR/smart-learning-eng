@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Claude Code local config
 /.claude/
+
+# 教材內容（使用者提供，不上傳到公開倉庫）
+/content/

@@ -154,7 +154,10 @@ export async function setVocabularyFlags(learnerId: string, id: string, input: u
 
 export async function listTopics(): Promise<string[]> {
   const items = await vocabularyRepository.list();
-  return [...new Set(items.map((item) => item.topic))].sort();
+  // 數字按大小排序，例如 List 2 排在 List 10 之前
+  return [...new Set(items.map((item) => item.topic))].sort((a, b) =>
+    a.localeCompare(b, "en", { numeric: true }),
+  );
 }
 
 /** 刪除所有示範生字及示範資源 */

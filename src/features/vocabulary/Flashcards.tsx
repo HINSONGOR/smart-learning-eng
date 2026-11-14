@@ -163,15 +163,17 @@ export function Flashcards() {
                     {current.definitionEn}
                   </p>
                 )}
-                <div className="flex items-start gap-2 rounded-lg bg-slate-50 p-3">
-                  <SpeakButton text={current.exampleEn} size="sm" label="播放例句" />
-                  <div>
-                    <p className="text-slate-800" lang="en">
-                      {current.exampleEn}
-                    </p>
-                    {current.exampleZh && <p className="text-sm text-slate-500">{current.exampleZh}</p>}
+                {current.exampleEn && (
+                  <div className="flex items-start gap-2 rounded-lg bg-slate-50 p-3">
+                    <SpeakButton text={current.exampleEn} size="sm" label="播放例句" />
+                    <div>
+                      <p className="text-slate-800" lang="en">
+                        {current.exampleEn}
+                      </p>
+                      {current.exampleZh && <p className="text-sm text-slate-500">{current.exampleZh}</p>}
+                    </div>
                   </div>
-                </div>
+                )}
                 <VocabularyBadges item={current} />
               </div>
             ) : (

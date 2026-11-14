@@ -181,6 +181,20 @@ export function ArticleReader() {
         <div ref={textRef} className="reading-text space-y-4 text-slate-900" lang="en">
           {article.paragraphs.map((paragraph, p) => (
             <div key={p} className={showZh ? "space-y-2" : ""}>
+              {paragraph.section && (
+                <h2 className={`mb-2 text-base font-bold text-teal-800 ${p > 0 ? "mt-6 border-t border-slate-100 pt-4" : ""}`}>
+                  {paragraph.section}
+                </h2>
+              )}
+              {paragraph.speaker && (
+                <span
+                  className={`mr-2 inline-block rounded px-1.5 py-0.5 align-middle text-xs font-semibold ${
+                    paragraph.speaker === "Interviewer" ? "bg-indigo-100 text-indigo-800" : "bg-amber-100 text-amber-900"
+                  }`}
+                >
+                  {paragraph.speaker}
+                </span>
+              )}
               {paragraph.sentences.map((sentence, s) => {
                 const index = paragraphOffsets[p] + s;
                 const singleKey = `${key}:s${index}`;

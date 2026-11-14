@@ -41,7 +41,7 @@ const FORMATS: Record<Format, FormatSpec> = {
   },
   "sentence-reading": {
     label: "例句閱讀",
-    eligible: (v) => v.exampleZh.trim() !== "",
+    eligible: (v) => v.exampleEn.trim() !== "" && v.exampleZh.trim() !== "",
     value: (v) => v.exampleZh,
     build: (v) => ({ prompt: v.exampleEn, hint: "選出這句英文的正確中文翻譯", speakText: v.exampleEn }),
   },
@@ -56,7 +56,7 @@ const FORMATS: Record<Format, FormatSpec> = {
 function explanationFor(v: VocabularyView): string {
   const parts = [`${v.word}（${posZh(v.partOfSpeech)}）：${v.meaningZh}`];
   if (v.definitionEn) parts.push(`English: ${v.definitionEn}`);
-  parts.push(`例句：${v.exampleEn}${v.exampleZh ? `（${v.exampleZh}）` : ""}`);
+  if (v.exampleEn) parts.push(`例句：${v.exampleEn}${v.exampleZh ? `（${v.exampleZh}）` : ""}`);
   return parts.join("\n");
 }
 
@@ -148,8 +148,10 @@ export function buildQuiz(
       mode === "definition"
         ? "有英文解釋的生字"
         : mode === "sentence-reading"
-          ? "有例句中文翻譯的生字"
-          : "生字";
+          ? "有英文例句及中文翻譯的生字"
+          : mode === "fill-blank"
+            ? "有英文例句的生字"
+            : "生字";
     return {
       questions: [],
       message: `可用來出題的${needs}不足。每題需要 ${MIN_CHOICES} 個不同選項，請先在生字庫加入至少 ${MIN_CHOICES} 個${needs}${spec ? `（${spec.label}）` : ""}。`,

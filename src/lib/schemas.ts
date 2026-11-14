@@ -25,7 +25,8 @@ export const vocabularyInputSchema = z.object({
   partOfSpeech: requiredText(30, "請選擇詞性"),
   meaningZh: requiredText(300, "請輸入中文解釋"),
   definitionEn: optionalText(500),
-  exampleEn: requiredText(500, "請輸入英文例句"),
+  /** 選填：部分教材（例如生字表）沒有例句 */
+  exampleEn: optionalText(500),
   exampleZh: optionalText(500),
   category: categorySchema,
   topic: requiredText(60, "請輸入主題"),
@@ -71,7 +72,17 @@ export const articleSchema = z.object({
   level: levelSchema,
   ieltsBand: ieltsBandSchema,
   source: z.string().default(""),
-  paragraphs: z.array(z.object({ sentences: z.array(sentenceSchema).min(1) })).min(1),
+  paragraphs: z
+    .array(
+      z.object({
+        /** 段落前的小標題，例如 "Part 1: Introduction" */
+        section: z.string().default(""),
+        /** 對話的說話者，例如 "Interviewer"；只顯示，不朗讀 */
+        speaker: z.string().default(""),
+        sentences: z.array(sentenceSchema).min(1),
+      }),
+    )
+    .min(1),
   glossary: z.array(glossaryItemSchema).default([]),
   createdAt: z.string(),
 });
