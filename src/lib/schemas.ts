@@ -122,7 +122,19 @@ export const readingExerciseSchema = z.object({
   passage: z
     .object({
       title: z.string().default(""),
-      paragraphs: z.array(z.string()).default([]),
+      // 每段可以是純文字，或附段落字母（A、B…）及小標題
+      paragraphs: z
+        .array(
+          z.union([
+            z.string().transform((text) => ({ label: "", heading: "", text })),
+            z.object({
+              label: z.string().default(""),
+              heading: z.string().default(""),
+              text: z.string(),
+            }),
+          ]),
+        )
+        .default([]),
     })
     .default({ title: "", paragraphs: [] }),
   questions: z.array(exerciseQuestionSchema).min(1),

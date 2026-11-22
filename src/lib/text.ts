@@ -53,6 +53,14 @@ export function splitSentences(text: string): string[] {
     .filter(Boolean);
 }
 
+/** 把句子拆成「字」及「非字」片段，字可以點擊查詢 */
+export function tokenizeWords(text: string): Array<{ text: string; isWord: boolean }> {
+  return text
+    .split(/([A-Za-z][A-Za-z'’-]*[A-Za-z]|[A-Za-z])/)
+    .filter(Boolean)
+    .map((part) => ({ text: part, isWord: /^[A-Za-z]/.test(part) }));
+}
+
 export function percent(correct: number, total: number): number | null {
   if (total <= 0) return null;
   return Math.round((correct / total) * 100);

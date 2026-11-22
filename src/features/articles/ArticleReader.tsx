@@ -8,6 +8,7 @@ import { SpeakButton, SpeechNotice } from "@/components/SpeakButton";
 import { Badge, Button, Card, EmptyState, ErrorMessage, LinkButton, LoadingState } from "@/components/ui";
 import { CATEGORIES } from "@/lib/constants";
 import { findGlossaryRanges } from "@/lib/highlight";
+import { tokenizeWords } from "@/lib/text";
 import { api, withQuery } from "@/lib/apiClient";
 import { useApi } from "@/lib/useApi";
 import type { ArticleProgress, ArticleView } from "@/types";
@@ -26,13 +27,7 @@ function segmentSentence(sentence: string, terms: string[]): Array<{ text: strin
   return segments;
 }
 
-/** 把句子拆成「字」及「非字」片段，字可以點擊查詢 */
-function tokenize(sentence: string): Array<{ text: string; isWord: boolean }> {
-  return sentence.split(/([A-Za-z][A-Za-z'’-]*[A-Za-z]|[A-Za-z])/).filter(Boolean).map((text) => ({
-    text,
-    isWord: /^[A-Za-z]/.test(text),
-  }));
-}
+const tokenize = tokenizeWords;
 
 export function ArticleReader() {
   const { id } = useParams<{ id: string }>();

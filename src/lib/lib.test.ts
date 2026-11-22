@@ -112,7 +112,7 @@ const exercise: ReadingExercise = {
   level: "",
   ieltsBand: "",
   instructions: "",
-  passage: { title: "", paragraphs: ["Placeholder passage."] },
+  passage: { title: "", paragraphs: [{ label: "A", heading: "", text: "Placeholder passage." }] },
   questions: [
     { id: "q1", number: 1, prompt: "The answer is ___.", answers: ["sample answer", "sample"], options: [], explanation: "Test explanation" },
     { id: "q2", number: 2, prompt: "Second ___.", answers: ["option"], options: [], explanation: "" },

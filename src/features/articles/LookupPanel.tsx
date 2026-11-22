@@ -80,7 +80,6 @@ export function LookupPanel({
     if (!form.word.trim()) errors.word = "請輸入生字";
     if (!form.partOfSpeech) errors.partOfSpeech = "請選擇詞性";
     if (!form.meaningZh.trim()) errors.meaningZh = "請輸入中文解釋";
-    if (!form.exampleEn.trim()) errors.exampleEn = "請輸入英文例句";
     setFieldErrors(errors);
     if (Object.keys(errors).length) return;
     setStatus("saving");
@@ -194,7 +193,7 @@ export function LookupPanel({
               <Field label="英文解釋" hint="選填">
                 <TextInput value={form.definitionEn} onChange={set("definitionEn")} lang="en" />
               </Field>
-              <Field label="例句（文章原句）" required error={fieldErrors.exampleEn}>
+              <Field label="例句（文章原句）" error={fieldErrors.exampleEn} hint="建議保留；用於填充題、聽寫及跟讀">
                 <TextArea rows={2} value={form.exampleEn} onChange={set("exampleEn")} lang="en" invalid={Boolean(fieldErrors.exampleEn)} />
               </Field>
               <Field label="例句中文翻譯" hint="選填">

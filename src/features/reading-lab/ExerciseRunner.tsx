@@ -10,6 +10,7 @@ import { api, withQuery } from "@/lib/apiClient";
 import { percent } from "@/lib/text";
 import { useApi } from "@/lib/useApi";
 import type { PracticeRecord, PublicExercise } from "@/types";
+import { PassageView } from "./PassageView";
 import { QuestionArea } from "./QuestionArea";
 
 export function ExerciseRunner() {
@@ -111,20 +112,7 @@ function ExerciseRunnerInner({ redoId }: { redoId: string }) {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {(ex.passage.title || ex.passage.paragraphs.length > 0) && (
-          <Card className="lg:sticky lg:top-16 lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto">
-            {ex.passage.title && (
-              <h2 className="mb-2 font-semibold text-slate-900" lang="en">
-                {ex.passage.title}
-              </h2>
-            )}
-            <div className="reading-text space-y-3 text-slate-800" lang="en">
-              {ex.passage.paragraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-            </div>
-          </Card>
-        )}
+        <PassageView exercise={ex} learnerId={learnerId} />
 
         <div className="space-y-4">
           {ex.instructions && (
