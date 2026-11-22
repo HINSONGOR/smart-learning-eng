@@ -8,12 +8,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Smart English 免費英文學習系統",
-  description: "IELTS、日常生活及職場英文學習（本機試用版）",
+  description: "IELTS、日常生活及職場英文學習",
+  // 加入 iPhone 主畫面時的名稱，並以獨立 App 形式開啟
+  appleWebApp: { capable: true, title: "Smart English", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#0d9488",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
