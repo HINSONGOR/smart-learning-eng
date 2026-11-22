@@ -39,6 +39,9 @@ export interface VocabularyView extends Vocabulary {
 
 export interface ArticleView extends Article {
   progress: ArticleProgress;
+  /** 文章庫排列中的上一篇及下一篇（同一分類） */
+  previous?: { id: string; title: string } | null;
+  next?: { id: string; title: string } | null;
 }
 
 /** 不含答案的 Reading Lab 題目，作答前傳給瀏覽器 */

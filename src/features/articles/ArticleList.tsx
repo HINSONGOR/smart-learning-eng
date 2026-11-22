@@ -18,12 +18,17 @@ export function ArticleList() {
   );
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [topic, setTopic] = useState("");
   const [scope, setScope] = useState<Scope>("all");
 
   const all = data ?? [];
+  const topics = [...new Set(all.filter((a) => !category || a.category === category).map((a) => a.topic).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b, "zh-Hant", { numeric: true }),
+  );
   const q = search.trim().toLowerCase();
   const list = all.filter((a) => {
     if (category && a.category !== category) return false;
+    if (topic && a.topic !== topic) return false;
     if (scope === "favorites" && !a.progress.isFavorite) return false;
     if (scope === "learned" && !a.progress.isLearned) return false;
     if (scope === "unlearned" && a.progress.isLearned) return false;
@@ -47,13 +52,28 @@ export function ArticleList() {
       ) : (
         <>
           <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <div className="grid gap-2 sm:grid-cols-[1fr_12rem]">
+            <div className="grid gap-2 sm:grid-cols-[1fr_12rem_14rem]">
               <TextInput type="search" placeholder="搜尋文章標題或主題…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="搜尋文章" />
-              <Select aria-label="分類" value={category} onChange={(e) => setCategory(e.target.value)}>
+              <Select
+                aria-label="分類"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setTopic("");
+                }}
+              >
                 <option value="">全部分類</option>
                 {CATEGORY_LIST.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.label}
+                  </option>
+                ))}
+              </Select>
+              <Select aria-label="章節或主題" value={topic} onChange={(e) => setTopic(e.target.value)}>
+                <option value="">全部章節／主題</option>
+                {topics.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
                   </option>
                 ))}
               </Select>
@@ -89,6 +109,7 @@ export function ArticleList() {
                       {a.titleZh && <p className="text-sm text-slate-600">{a.titleZh}</p>}
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         <Badge className={c.color.badge}>{c.label}</Badge>
+                        {a.topic && <Badge>{a.topic}</Badge>}
                         {a.level && <Badge className="bg-sky-100 text-sky-800">{a.level}</Badge>}
                         {a.ieltsBand && <Badge className="bg-indigo-100 text-indigo-800">Band {a.ieltsBand}</Badge>}
                         {a.progress.isLearned && <Badge className="bg-emerald-100 text-emerald-800">✓ 已學習</Badge>}

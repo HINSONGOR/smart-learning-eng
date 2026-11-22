@@ -79,6 +79,8 @@ export const articleSchema = z.object({
         section: z.string().default(""),
         /** 對話的說話者，例如 "Interviewer"；只顯示，不朗讀 */
         speaker: z.string().default(""),
+        /** 整段的中文翻譯（教材按段落翻譯時使用） */
+        translationZh: z.string().default(""),
         sentences: z.array(sentenceSchema).min(1),
       }),
     )

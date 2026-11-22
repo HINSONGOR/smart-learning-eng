@@ -5,6 +5,7 @@ import { blankOutWord, normalizeAnswer, percent } from "./text";
 import { buildQuiz } from "./quiz";
 import { gradeExercise, isAnswerCorrect } from "./grading";
 import { compareDictation } from "./dictation";
+import { findGlossaryRanges } from "./highlight";
 import type { ReadingExercise, VocabularyView } from "@/types";
 
 function word(i: number, extra: Partial<VocabularyView> = {}): VocabularyView {
@@ -143,6 +144,24 @@ describe("grading", () => {
     const redo = gradeExercise(exercise, { q2: "option" }, ["q2"]);
     expect(redo).toHaveLength(1);
     expect(redo[0].isCorrect).toBe(true);
+  });
+});
+
+describe("findGlossaryRanges", () => {
+  it("finds words, inflections, phrases and split phrases", () => {
+    const sentence = "Ben started measuring the distance and saw the field in the distance, but I feel quite content with it.";
+    const ranges = findGlossaryRanges(sentence, ["measure", "distance", "in the distance", "feel … content with"]);
+    const texts = ranges.map((r) => `${sentence.slice(r.start, r.end)}=${r.term}`);
+    expect(texts).toEqual([
+      "measuring=measure",
+      "distance=distance",
+      "in the distance=in the distance",
+      "feel quite content with=feel … content with",
+    ]);
+  });
+
+  it("does not match inside other words", () => {
+    expect(findGlossaryRanges("The eagles flew over the beagle.", ["eagle"]).length).toBe(1);
   });
 });
 

@@ -56,7 +56,12 @@ export function LookupPanel({
         setResult(r);
         setForm({
           word: r.text,
-          partOfSpeech: PARTS_OF_SPEECH.includes(r.partOfSpeech as (typeof PARTS_OF_SPEECH)[number]) ? r.partOfSpeech : "",
+          // 教材沒有標詞性時，多字詞預設為片語
+          partOfSpeech: PARTS_OF_SPEECH.includes(r.partOfSpeech as (typeof PARTS_OF_SPEECH)[number])
+            ? r.partOfSpeech
+            : /\s/.test(r.text.trim())
+              ? "phrase"
+              : "",
           meaningZh: r.meaningZh,
           definitionEn: r.definitionEn,
           exampleEn: r.exampleEn,

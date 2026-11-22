@@ -7,10 +7,24 @@ import { speechUnavailableReason, useSpeech } from "@/components/providers/Speec
 import { SpeakButton, SpeechNotice } from "@/components/SpeakButton";
 import { Badge, Button, Card, EmptyState, ErrorMessage, LinkButton, LoadingState } from "@/components/ui";
 import { CATEGORIES } from "@/lib/constants";
+import { findGlossaryRanges } from "@/lib/highlight";
 import { api, withQuery } from "@/lib/apiClient";
 import { useApi } from "@/lib/useApi";
 import type { ArticleProgress, ArticleView } from "@/types";
 import { LookupPanel, type LookupRequest } from "./LookupPanel";
+
+/** 把句子拆成「目標詞」及一般文字片段（目標詞加底線） */
+function segmentSentence(sentence: string, terms: string[]): Array<{ text: string; term?: string }> {
+  const segments: Array<{ text: string; term?: string }> = [];
+  let last = 0;
+  for (const range of findGlossaryRanges(sentence, terms)) {
+    if (range.start > last) segments.push({ text: sentence.slice(last, range.start) });
+    segments.push({ text: sentence.slice(range.start, range.end), term: range.term });
+    last = range.end;
+  }
+  if (last < sentence.length) segments.push({ text: sentence.slice(last) });
+  return segments;
+}
 
 /** 把句子拆成「字」及「非字」片段，字可以點擊查詢 */
 function tokenize(sentence: string): Array<{ text: string; isWord: boolean }> {
@@ -34,6 +48,7 @@ export function ArticleReader() {
   const textRef = useRef<HTMLDivElement>(null);
 
   const sentences = useMemo(() => article?.paragraphs.flatMap((p) => p.sentences.map((s) => s.en)) ?? [], [article]);
+  const glossaryTerms = useMemo(() => article?.glossary.map((g) => g.word) ?? [], [article]);
   const key = `article:${id}`;
   const playingHere = speech.activeKey === key && speech.status !== "idle";
   const speechReason = speechUnavailableReason(speech);
@@ -170,17 +185,25 @@ export function ArticleReader() {
         <p className="w-full text-xs text-slate-500">提示：點擊句子前的 ▶ 播放該句；點擊任何英文字查看解釋；選取幾個字可以查詢片語。</p>
       </div>
 
-      {article.summaryZh && showZh && (
+      {article.summaryZh && (
         <Card className="bg-slate-50">
-          <p className="text-sm font-medium text-slate-700">中文解釋</p>
-          <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{article.summaryZh}</p>
+          <p className="whitespace-pre-line text-sm text-slate-700">{article.summaryZh}</p>
         </Card>
+      )}
+      {article.glossary.length > 0 && (
+        <p className="text-xs text-slate-500">
+          <span className="border-b-2 border-teal-500 font-semibold text-slate-700">有底線</span>
+          的是本篇目標詞，點擊即可看文中釋義及儲存。
+        </p>
       )}
 
       <Card>
         <div ref={textRef} className="reading-text space-y-4 text-slate-900" lang="en">
-          {article.paragraphs.map((paragraph, p) => (
-            <div key={p} className={showZh ? "space-y-2" : ""}>
+          {article.paragraphs.map((paragraph, p) => {
+            // 教材逐句翻譯時每句分行顯示；按段落翻譯時保持整段，翻譯放在段落下面
+            const perSentenceZh = showZh && paragraph.sentences.some((s) => s.zh);
+            return (
+            <div key={p} className={perSentenceZh ? "space-y-2" : ""}>
               {paragraph.section && (
                 <h2 className={`mb-2 text-base font-bold text-teal-800 ${p > 0 ? "mt-6 border-t border-slate-100 pt-4" : ""}`}>
                   {paragraph.section}
@@ -212,28 +235,47 @@ export function ArticleReader() {
                     >
                       ▶
                     </button>
-                    {tokenize(sentence.en).map((token, t) =>
-                      token.isWord ? (
+                    {segmentSentence(sentence.en, glossaryTerms).map((segment, g) =>
+                      segment.term ? (
                         <span
-                          key={t}
+                          key={g}
                           role="button"
                           tabIndex={0}
                           onClick={() => {
                             if (window.getSelection()?.toString().trim()) return;
-                            setLookup({ text: token.text, sentence: sentence.en });
+                            setLookup({ text: segment.term!, sentence: sentence.en });
                           }}
-                          onKeyDown={(e) => e.key === "Enter" && setLookup({ text: token.text, sentence: sentence.en })}
-                          className="cursor-pointer rounded hover:bg-teal-100"
+                          onKeyDown={(e) => e.key === "Enter" && setLookup({ text: segment.term!, sentence: sentence.en })}
+                          className="cursor-pointer rounded border-b-2 border-teal-500 font-semibold hover:bg-teal-100"
+                          title={segment.term}
                         >
-                          {token.text}
+                          {segment.text}
                         </span>
                       ) : (
-                        <Fragment key={t}>{token.text}</Fragment>
+                        tokenize(segment.text).map((token, t) =>
+                          token.isWord ? (
+                            <span
+                              key={`${g}-${t}`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => {
+                                if (window.getSelection()?.toString().trim()) return;
+                                setLookup({ text: token.text, sentence: sentence.en });
+                              }}
+                              onKeyDown={(e) => e.key === "Enter" && setLookup({ text: token.text, sentence: sentence.en })}
+                              className="cursor-pointer rounded hover:bg-teal-100"
+                            >
+                              {token.text}
+                            </span>
+                          ) : (
+                            <Fragment key={`${g}-${t}`}>{token.text}</Fragment>
+                          ),
+                        )
                       ),
                     )}{" "}
                   </span>
                 );
-                return showZh ? (
+                return perSentenceZh ? (
                   <div key={s}>
                     {content}
                     {sentence.zh && (
@@ -246,17 +288,40 @@ export function ArticleReader() {
                   <Fragment key={s}>{content}</Fragment>
                 );
               })}
+              {showZh && paragraph.translationZh && (
+                <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-base leading-relaxed text-slate-600" lang="zh-Hant">
+                  {paragraph.translationZh}
+                </p>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
+
+      {(article.previous || article.next) && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {article.previous ? (
+            <LinkButton href={`/articles/${article.previous.id}`} variant="secondary" className="justify-start text-left">
+              ← 上一篇：{article.previous.title}
+            </LinkButton>
+          ) : (
+            <span />
+          )}
+          {article.next && (
+            <LinkButton href={`/articles/${article.next.id}`} className="justify-end text-right">
+              下一篇：{article.next.title} →
+            </LinkButton>
+          )}
+        </div>
+      )}
 
       {article.glossary.length > 0 && (
         <Card>
           <h2 className="mb-3 font-semibold text-slate-800">文章生字（{article.glossary.length}）</h2>
           <ul className="divide-y divide-slate-100">
-            {article.glossary.map((g) => (
-              <li key={g.word} className="flex items-start gap-3 py-2">
+            {article.glossary.map((g, i) => (
+              <li key={`${g.word}-${i}`} className="flex items-start gap-3 py-2">
                 <SpeakButton text={g.word} size="sm" />
                 <div className="min-w-0 flex-1 text-sm">
                   <p>
